@@ -16,7 +16,11 @@ import Review.Rule as Rule exposing (Error, Rule)
 
 type Context
     = NoImport
-    | Import { aliasing : Maybe ModuleName, exposed : Bool }
+    | Import
+        { aliasing : Maybe ModuleName
+        , exposedClass : Bool
+        , exposedClassList : Bool
+        }
 
 
 {-| Reports the use of `Html.Attributes.class`, `Html.Attributes.classList` and
@@ -83,10 +87,15 @@ importVisitor node context =
                     Node.value node
                         |> .moduleAlias
                         |> Maybe.map Node.value
-                , exposed =
+                , exposedClass =
                     Node.value node
                         |> .exposingList
                         |> Maybe.map (Node.value >> Exposing.exposesFunction "class")
+                        |> Maybe.withDefault False
+                , exposedClassList =
+                    Node.value node
+                        |> .exposingList
+                        |> Maybe.map (Node.value >> Exposing.exposesFunction "classList")
                         |> Maybe.withDefault False
                 }
             )
@@ -98,17 +107,32 @@ importVisitor node context =
 expressionVisitor : Node Expression -> Context -> ( List (Error {}), Context )
 expressionVisitor (Node range expression) context =
     case ( context, expression ) of
-        ( Import { exposed }, Expression.Application [ Node _ (Expression.FunctionOrValue [] "class"), _ ] ) ->
-            if exposed then
+        ( Import { exposedClass }, Expression.Application [ Node _ (Expression.FunctionOrValue [] "class"), _ ] ) ->
+            if exposedClass then
                 -- then this "class" is `Html.Attributes.class`
-                ( [ Rule.error error range ], context )
+                ( [ Rule.error errorClass range ], context )
 
             else
                 ( [], context )
 
         ( Import { aliasing }, Expression.Application [ Node _ (Expression.FunctionOrValue moduleName "class"), _ ] ) ->
             if moduleName == Maybe.withDefault [ "Html", "Attributes" ] aliasing then
-                ( [ Rule.error error range ], context )
+                ( [ Rule.error errorClass range ], context )
+
+            else
+                ( [], context )
+
+        ( Import { exposedClassList }, Expression.Application [ Node _ (Expression.FunctionOrValue [] "classList"), _ ] ) ->
+            if exposedClassList then
+                -- then this "classList" is `Html.Attributes.classList`
+                ( [ Rule.error errorClassList range ], context )
+
+            else
+                ( [], context )
+
+        ( Import { aliasing }, Expression.Application [ Node _ (Expression.FunctionOrValue moduleName "classList"), _ ] ) ->
+            if moduleName == Maybe.withDefault [ "Html", "Attributes" ] aliasing then
+                ( [ Rule.error errorClassList range ], context )
 
             else
                 ( [], context )
@@ -117,8 +141,15 @@ expressionVisitor (Node range expression) context =
             ( [], context )
 
 
-error : { message : String, details : List String }
-error =
+errorClass : { message : String, details : List String }
+errorClass =
     { message = "Do not use `Html.Attributes.class`"
     , details = [ "Use the `CSS.Attributes.class` instead." ]
+    }
+
+
+errorClassList : { message : String, details : List String }
+errorClassList =
+    { message = "Do not use `Html.Attributes.classList`"
+    , details = [ "Use the `CSS.Attributes.classList` instead." ]
     }
