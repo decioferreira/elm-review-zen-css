@@ -51,7 +51,7 @@ config =
     , NoDebug.TodoOrToString.rule
         |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     , NoExposingEverything.rule
-    , NoForbiddenWords.rule [ "REPLACEME" ]
+    , NoForbiddenWords.rule [ "TODO" ]
     , NoImportingEverything.rule []
     , NoMissingTypeAnnotation.rule
     , NoMissingTypeAnnotationInLetIn.rule

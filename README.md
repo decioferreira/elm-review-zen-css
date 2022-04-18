@@ -1,11 +1,11 @@
 # elm-review-zen-css
 
-Provides [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rules to REPLACEME.
+Provides [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rules to support the use of [`elm-zen-css`](https://package.elm-lang.org/packages/decioferreira/elm-zen-css/latest/).
 
 
 ## Provided rules
 
-- [`ZenCss.NoHtmlClasses`](https://package.elm-lang.org/packages/decioferreira/elm-review-zen-css/1.0.0/ZenCss-NoHtmlClasses) - Reports REPLACEME.
+- [`ZenCss.NoHtmlClasses`](https://package.elm-lang.org/packages/decioferreira/elm-review-zen-css/1.0.0/ZenCss-NoHtmlClasses) - Reports the use of `Html.Attributes.class`, `Html.Attributes.classList` and `Svg.Attributes.class`.
 
 
 ## Configuration

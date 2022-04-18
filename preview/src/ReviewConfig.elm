@@ -11,8 +11,8 @@ when inside the directory containing this file.
 
 -}
 
-import ZenCss.NoHtmlClasses
 import Review.Rule exposing (Rule)
+import ZenCss.NoHtmlClasses
 
 
 config : List Rule
