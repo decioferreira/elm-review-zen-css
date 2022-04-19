@@ -10,6 +10,7 @@ all =
     describe "ZenCss.NoHtmlClasses"
         [ htmlAttributesClass
         , htmlAttributesClassList
+        , svgAttributesClass
         ]
 
 
@@ -220,6 +221,112 @@ main =
                             { message = "Do not use `Html.Attributes.classList`"
                             , details = [ "Use the `CSS.Attributes.classList` instead." ]
                             , under = "classList [ ( \"container\", True ) ]"
+                            }
+                        ]
+        ]
+
+
+svgAttributesClass : Test
+svgAttributesClass =
+    describe "Svg.Attributes.class"
+        [ test "should report an error when Svg.Attributes.class is used" <|
+            \() ->
+                """module Main exposing (..)
+
+import Html exposing (Html)
+import Svg
+import Svg.Attributes
+
+main : Html msg
+main =
+    Svg.svg [ Svg.Attributes.class "container" ] []
+"""
+                    |> Review.Test.run rule
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error
+                            { message = "Do not use `Svg.Attributes.class`"
+                            , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
+                            , under = "Svg.Attributes.class \"container\""
+                            }
+                        ]
+        , test "should report an error when Svg.Attributes.class is aliased" <|
+            \() ->
+                """module Main exposing (..)
+
+import Html exposing (Html)
+import Svg
+import Svg.Attributes as Attributes
+
+main : Html msg
+main =
+    Svg.svg [ Attributes.class "container" ] []
+"""
+                    |> Review.Test.run rule
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error
+                            { message = "Do not use `Svg.Attributes.class`"
+                            , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
+                            , under = "Attributes.class \"container\""
+                            }
+                        ]
+        , test "should report an error when Svg.Attributes.class is exposed" <|
+            \() ->
+                """module Main exposing (..)
+
+import Html exposing (Html)
+import Svg
+import Svg.Attributes exposing (class)
+
+main : Html msg
+main =
+    Svg.svg [ class "container" ] []
+"""
+                    |> Review.Test.run rule
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error
+                            { message = "Do not use `Svg.Attributes.class`"
+                            , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
+                            , under = "class \"container\""
+                            }
+                        ]
+        , test "should report an error when Svg.Attributes.class is aliased and exposed (using alias)" <|
+            \() ->
+                """module Main exposing (..)
+
+import Html exposing (Html)
+import Svg
+import Svg.Attributes as Attributes exposing (class)
+
+main : Html msg
+main =
+    Svg.svg [ Attributes.class "container" ] []
+"""
+                    |> Review.Test.run rule
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error
+                            { message = "Do not use `Svg.Attributes.class`"
+                            , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
+                            , under = "Attributes.class \"container\""
+                            }
+                        ]
+        , test "should report an error when Svg.Attributes.class is aliased and exposed (using exposed)" <|
+            \() ->
+                """module Main exposing (..)
+
+import Html exposing (Html)
+import Svg
+import Svg.Attributes as Attributes exposing (class)
+
+main : Html msg
+main =
+    Svg.svg [ class "container" ] []
+"""
+                    |> Review.Test.run rule
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error
+                            { message = "Do not use `Svg.Attributes.class`"
+                            , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
+                            , under = "class \"container\""
                             }
                         ]
         ]

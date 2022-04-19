@@ -14,13 +14,34 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Review.Rule as Rule exposing (Error, Rule)
 
 
-type Context
-    = NoImport
-    | Import
-        { aliasing : Maybe ModuleName
-        , exposedClass : Bool
-        , exposedClassList : Bool
-        }
+type alias Context =
+    { html : HtmlContext
+    , svg : SvgContext
+    }
+
+
+type HtmlContext
+    = HtmlNoImport
+    | HtmlImport Aliasing ExposedClass ExposedClassList
+
+
+type SvgContext
+    = SvgNoImport
+    | SvgImport Aliasing ExposedClass
+
+
+type alias Aliasing =
+    Maybe ModuleName
+
+
+type ExposedClass
+    = ExposedClass
+    | NonExposedClass
+
+
+type ExposedClassList
+    = ExposedClassList
+    | NonExposedClassList
 
 
 {-| Reports the use of `Html.Attributes.class`, `Html.Attributes.classList` and
@@ -71,7 +92,10 @@ elm-review --template decioferreira/elm-review-zen-css/example --rules ZenCss.No
 -}
 rule : Rule
 rule =
-    Rule.newModuleRuleSchema "ZenCss.NoHtmlClasses" NoImport
+    Rule.newModuleRuleSchema "ZenCss.NoHtmlClasses"
+        { html = HtmlNoImport
+        , svg = SvgNoImport
+        }
         |> Rule.withImportVisitor importVisitor
         |> Rule.withExpressionEnterVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
@@ -81,24 +105,69 @@ importVisitor : Node Import -> Context -> ( List (Error {}), Context )
 importVisitor node context =
     case Node.value node |> .moduleName |> Node.value of
         [ "Html", "Attributes" ] ->
-            ( []
-            , Import
-                { aliasing =
+            let
+                aliasing : Aliasing
+                aliasing =
                     Node.value node
                         |> .moduleAlias
                         |> Maybe.map Node.value
-                , exposedClass =
+
+                exposedClassBool : Bool
+                exposedClassBool =
                     Node.value node
                         |> .exposingList
                         |> Maybe.map (Node.value >> Exposing.exposesFunction "class")
                         |> Maybe.withDefault False
-                , exposedClassList =
+
+                exposedClass : ExposedClass
+                exposedClass =
+                    if exposedClassBool then
+                        ExposedClass
+
+                    else
+                        NonExposedClass
+
+                exposedClassListBool : Bool
+                exposedClassListBool =
                     Node.value node
                         |> .exposingList
                         |> Maybe.map (Node.value >> Exposing.exposesFunction "classList")
                         |> Maybe.withDefault False
-                }
-            )
+
+                exposedClassList : ExposedClassList
+                exposedClassList =
+                    if exposedClassListBool then
+                        ExposedClassList
+
+                    else
+                        NonExposedClassList
+            in
+            ( [], { context | html = HtmlImport aliasing exposedClass exposedClassList } )
+
+        [ "Svg", "Attributes" ] ->
+            let
+                aliasing : Aliasing
+                aliasing =
+                    Node.value node
+                        |> .moduleAlias
+                        |> Maybe.map Node.value
+
+                exposedClassBool : Bool
+                exposedClassBool =
+                    Node.value node
+                        |> .exposingList
+                        |> Maybe.map (Node.value >> Exposing.exposesFunction "class")
+                        |> Maybe.withDefault False
+
+                exposedClass : ExposedClass
+                exposedClass =
+                    if exposedClassBool then
+                        ExposedClass
+
+                    else
+                        NonExposedClass
+            in
+            ( [], { context | svg = SvgImport aliasing exposedClass } )
 
         _ ->
             ( [], context )
@@ -106,33 +175,36 @@ importVisitor node context =
 
 expressionVisitor : Node Expression -> Context -> ( List (Error {}), Context )
 expressionVisitor (Node range expression) context =
-    case ( context, expression ) of
-        ( Import { exposedClass }, Expression.Application [ Node _ (Expression.FunctionOrValue [] "class"), _ ] ) ->
-            if exposedClass then
-                -- then this "class" is `Html.Attributes.class`
-                ( [ Rule.error errorClass range ], context )
+    case ( context.html, context.svg, expression ) of
+        ( HtmlImport _ ExposedClass _, _, Expression.Application [ Node _ (Expression.FunctionOrValue [] "class"), _ ] ) ->
+            -- then this "class" is `Html.Attributes.class`
+            ( [ Rule.error errorHtmlClass range ], context )
 
-            else
-                ( [], context )
-
-        ( Import { aliasing }, Expression.Application [ Node _ (Expression.FunctionOrValue moduleName "class"), _ ] ) ->
+        ( HtmlImport aliasing _ _, _, Expression.Application [ Node _ (Expression.FunctionOrValue moduleName "class"), _ ] ) ->
             if moduleName == Maybe.withDefault [ "Html", "Attributes" ] aliasing then
-                ( [ Rule.error errorClass range ], context )
+                ( [ Rule.error errorHtmlClass range ], context )
 
             else
                 ( [], context )
 
-        ( Import { exposedClassList }, Expression.Application [ Node _ (Expression.FunctionOrValue [] "classList"), _ ] ) ->
-            if exposedClassList then
-                -- then this "classList" is `Html.Attributes.classList`
-                ( [ Rule.error errorClassList range ], context )
+        ( HtmlImport _ _ ExposedClassList, _, Expression.Application [ Node _ (Expression.FunctionOrValue [] "classList"), _ ] ) ->
+            -- then this "classList" is `Html.Attributes.classList`
+            ( [ Rule.error errorHtmlClassList range ], context )
 
-            else
-                ( [], context )
-
-        ( Import { aliasing }, Expression.Application [ Node _ (Expression.FunctionOrValue moduleName "classList"), _ ] ) ->
+        ( HtmlImport aliasing _ _, _, Expression.Application [ Node _ (Expression.FunctionOrValue moduleName "classList"), _ ] ) ->
             if moduleName == Maybe.withDefault [ "Html", "Attributes" ] aliasing then
-                ( [ Rule.error errorClassList range ], context )
+                ( [ Rule.error errorHtmlClassList range ], context )
+
+            else
+                ( [], context )
+
+        ( _, SvgImport _ ExposedClass, Expression.Application [ Node _ (Expression.FunctionOrValue [] "class"), _ ] ) ->
+            -- then this "class" is `Svg.Attributes.class`
+            ( [ Rule.error errorSvgClass range ], context )
+
+        ( _, SvgImport aliasing _, Expression.Application [ Node _ (Expression.FunctionOrValue moduleName "class"), _ ] ) ->
+            if moduleName == Maybe.withDefault [ "Svg", "Attributes" ] aliasing then
+                ( [ Rule.error errorSvgClass range ], context )
 
             else
                 ( [], context )
@@ -141,15 +213,22 @@ expressionVisitor (Node range expression) context =
             ( [], context )
 
 
-errorClass : { message : String, details : List String }
-errorClass =
+errorHtmlClass : { message : String, details : List String }
+errorHtmlClass =
     { message = "Do not use `Html.Attributes.class`"
     , details = [ "Use the `CSS.Attributes.class` instead." ]
     }
 
 
-errorClassList : { message : String, details : List String }
-errorClassList =
+errorHtmlClassList : { message : String, details : List String }
+errorHtmlClassList =
     { message = "Do not use `Html.Attributes.classList`"
     , details = [ "Use the `CSS.Attributes.classList` instead." ]
+    }
+
+
+errorSvgClass : { message : String, details : List String }
+errorSvgClass =
+    { message = "Do not use `Svg.Attributes.class`"
+    , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
     }
