@@ -6,6 +6,7 @@ Provides [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-revi
 ## Provided rules
 
 - [`ZenCss.NoHtmlClasses`](https://package.elm-lang.org/packages/decioferreira/elm-review-zen-css/1.0.0/ZenCss-NoHtmlClasses) - Reports the use of `Html.Attributes.class`, `Html.Attributes.classList` and `Svg.Attributes.class`.
+- [`ZenCss.NoHtmlStyles`](https://package.elm-lang.org/packages/decioferreira/elm-review-zen-css/1.0.0/ZenCss-NoHtmlStyles) - Reports the use of `Html.Attributes.style` and `Svg.Attributes.style`.
 
 
 ## Configuration
@@ -13,12 +14,14 @@ Provides [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-revi
 ```elm
 module ReviewConfig exposing (config)
 
-import ZenCss.NoHtmlClasses
 import Review.Rule exposing (Rule)
+import ZenCss.NoHtmlClasses
+import ZenCss.NoHtmlStyles
 
 config : List Rule
 config =
     [ ZenCss.NoHtmlClasses.rule
+    , ZenCss.NoHtmlStyles.rule
     ]
 ```
 

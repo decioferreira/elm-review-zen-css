@@ -13,9 +13,11 @@ when inside the directory containing this file.
 
 import Review.Rule exposing (Rule)
 import ZenCss.NoHtmlClasses
+import ZenCss.NoHtmlStyles
 
 
 config : List Rule
 config =
     [ ZenCss.NoHtmlClasses.rule
+    , ZenCss.NoHtmlStyles.rule
     ]

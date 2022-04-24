@@ -1,11 +1,12 @@
 {
     "type": "package",
     "name": "decioferreira/elm-review-zen-css",
-    "summary": "",
+    "summary": "Provides elm-review rules to support the use of elm-zen-css.",
     "license": "BSD-3-Clause",
     "version": "1.0.0",
     "exposed-modules": [
-        "ZenCss.NoHtmlClasses"
+        "ZenCss.NoHtmlClasses",
+        "ZenCss.NoHtmlStyles"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {
