@@ -33,7 +33,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.style`"
                             , details = [ "Use the `CSS.Attributes.class` instead." ]
-                            , under = "Html.Attributes.style \"color\" \"blue\""
+                            , under = "Html.Attributes.style"
                             }
                         ]
         , test "should report an error when Html.Attributes.style is aliased" <|
@@ -53,7 +53,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.style`"
                             , details = [ "Use the `CSS.Attributes.class` instead." ]
-                            , under = "Attributes.style \"color\" \"blue\""
+                            , under = "Attributes.style"
                             }
                         ]
         , test "should report an error when Html.Attributes.style is exposed" <|
@@ -73,8 +73,9 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.style`"
                             , details = [ "Use the `CSS.Attributes.class` instead." ]
-                            , under = "style \"color\" \"blue\""
+                            , under = "style"
                             }
+                            |> Review.Test.atExactly { start = { row = 8, column = 16 }, end = { row = 8, column = 21 } }
                         ]
         , test "should report an error when Html.Attributes.style is aliased and exposed (using alias)" <|
             \() ->
@@ -93,7 +94,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.style`"
                             , details = [ "Use the `CSS.Attributes.class` instead." ]
-                            , under = "Attributes.style \"color\" \"blue\""
+                            , under = "Attributes.style"
                             }
                         ]
         , test "should report an error when Html.Attributes.style is aliased and exposed (using exposed)" <|
@@ -113,8 +114,9 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.style`"
                             , details = [ "Use the `CSS.Attributes.class` instead." ]
-                            , under = "style \"color\" \"blue\""
+                            , under = "style"
                             }
+                            |> Review.Test.atExactly { start = { row = 8, column = 16 }, end = { row = 8, column = 21 } }
                         ]
         ]
 
@@ -139,7 +141,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Svg.Attributes.style`"
                             , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
-                            , under = "Svg.Attributes.style \"color\" \"blue\""
+                            , under = "Svg.Attributes.style"
                             }
                         ]
         , test "should report an error when Svg.Attributes.style is aliased" <|
@@ -159,7 +161,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Svg.Attributes.style`"
                             , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
-                            , under = "Attributes.style \"color\" \"blue\""
+                            , under = "Attributes.style"
                             }
                         ]
         , test "should report an error when Svg.Attributes.style is exposed" <|
@@ -179,8 +181,9 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Svg.Attributes.style`"
                             , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
-                            , under = "style \"color\" \"blue\""
+                            , under = "style"
                             }
+                            |> Review.Test.atExactly { start = { row = 9, column = 15 }, end = { row = 9, column = 20 } }
                         ]
         , test "should report an error when Svg.Attributes.style is aliased and exposed (using alias)" <|
             \() ->
@@ -199,8 +202,10 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Svg.Attributes.style`"
                             , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
-                            , under = "Attributes.style \"color\" \"blue\""
+                            , under = "Attributes.style"
                             }
+
+                        -- |> Review.Test.atExactly
                         ]
         , test "should report an error when Svg.Attributes.style is aliased and exposed (using exposed)" <|
             \() ->
@@ -219,7 +224,8 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Svg.Attributes.style`"
                             , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
-                            , under = "style \"color\" \"blue\""
+                            , under = "style"
                             }
+                            |> Review.Test.atExactly { start = { row = 9, column = 15 }, end = { row = 9, column = 20 } }
                         ]
         ]

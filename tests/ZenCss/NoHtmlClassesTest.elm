@@ -34,7 +34,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.class`"
                             , details = [ "Use the `CSS.Attributes.class` instead." ]
-                            , under = "Html.Attributes.class \"container\""
+                            , under = "Html.Attributes.class"
                             }
                         ]
         , test "should report an error when Html.Attributes.class is aliased" <|
@@ -54,7 +54,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.class`"
                             , details = [ "Use the `CSS.Attributes.class` instead." ]
-                            , under = "Attributes.class \"container\""
+                            , under = "Attributes.class"
                             }
                         ]
         , test "should report an error when Html.Attributes.class is exposed" <|
@@ -74,8 +74,9 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.class`"
                             , details = [ "Use the `CSS.Attributes.class` instead." ]
-                            , under = "class \"container\""
+                            , under = "class"
                             }
+                            |> Review.Test.atExactly { start = { row = 8, column = 16 }, end = { row = 8, column = 21 } }
                         ]
         , test "should report an error when Html.Attributes.class is aliased and exposed (using alias)" <|
             \() ->
@@ -94,7 +95,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.class`"
                             , details = [ "Use the `CSS.Attributes.class` instead." ]
-                            , under = "Attributes.class \"container\""
+                            , under = "Attributes.class"
                             }
                         ]
         , test "should report an error when Html.Attributes.class is aliased and exposed (using exposed)" <|
@@ -114,8 +115,9 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.class`"
                             , details = [ "Use the `CSS.Attributes.class` instead." ]
-                            , under = "class \"container\""
+                            , under = "class"
                             }
+                            |> Review.Test.atExactly { start = { row = 8, column = 16 }, end = { row = 8, column = 21 } }
                         ]
         ]
 
@@ -140,7 +142,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.classList`"
                             , details = [ "Use the `CSS.Attributes.classList` instead." ]
-                            , under = "Html.Attributes.classList [ ( \"container\", True ) ]"
+                            , under = "Html.Attributes.classList"
                             }
                         ]
         , test "should report an error when Html.Attributes.classList is aliased" <|
@@ -160,7 +162,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.classList`"
                             , details = [ "Use the `CSS.Attributes.classList` instead." ]
-                            , under = "Attributes.classList [ ( \"container\", True ) ]"
+                            , under = "Attributes.classList"
                             }
                         ]
         , test "should report an error when Html.Attributes.classList is exposed" <|
@@ -180,8 +182,9 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.classList`"
                             , details = [ "Use the `CSS.Attributes.classList` instead." ]
-                            , under = "classList [ ( \"container\", True ) ]"
+                            , under = "classList"
                             }
+                            |> Review.Test.atExactly { start = { row = 8, column = 16 }, end = { row = 8, column = 25 } }
                         ]
         , test "should report an error when Html.Attributes.classList is aliased and exposed (using alias)" <|
             \() ->
@@ -200,7 +203,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.classList`"
                             , details = [ "Use the `CSS.Attributes.classList` instead." ]
-                            , under = "Attributes.classList [ ( \"container\", True ) ]"
+                            , under = "Attributes.classList"
                             }
                         ]
         , test "should report an error when Html.Attributes.classList is aliased and exposed (using exposed)" <|
@@ -220,8 +223,9 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Html.Attributes.classList`"
                             , details = [ "Use the `CSS.Attributes.classList` instead." ]
-                            , under = "classList [ ( \"container\", True ) ]"
+                            , under = "classList"
                             }
+                            |> Review.Test.atExactly { start = { row = 8, column = 16 }, end = { row = 8, column = 25 } }
                         ]
         ]
 
@@ -246,7 +250,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Svg.Attributes.class`"
                             , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
-                            , under = "Svg.Attributes.class \"container\""
+                            , under = "Svg.Attributes.class"
                             }
                         ]
         , test "should report an error when Svg.Attributes.class is aliased" <|
@@ -266,7 +270,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Svg.Attributes.class`"
                             , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
-                            , under = "Attributes.class \"container\""
+                            , under = "Attributes.class"
                             }
                         ]
         , test "should report an error when Svg.Attributes.class is exposed" <|
@@ -286,8 +290,9 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Svg.Attributes.class`"
                             , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
-                            , under = "class \"container\""
+                            , under = "class"
                             }
+                            |> Review.Test.atExactly { start = { row = 9, column = 15 }, end = { row = 9, column = 20 } }
                         ]
         , test "should report an error when Svg.Attributes.class is aliased and exposed (using alias)" <|
             \() ->
@@ -306,7 +311,7 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Svg.Attributes.class`"
                             , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
-                            , under = "Attributes.class \"container\""
+                            , under = "Attributes.class"
                             }
                         ]
         , test "should report an error when Svg.Attributes.class is aliased and exposed (using exposed)" <|
@@ -326,7 +331,8 @@ main =
                         [ Review.Test.error
                             { message = "Do not use `Svg.Attributes.class`"
                             , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
-                            , under = "class \"container\""
+                            , under = "class"
                             }
+                            |> Review.Test.atExactly { start = { row = 9, column = 15 }, end = { row = 9, column = 20 } }
                         ]
         ]

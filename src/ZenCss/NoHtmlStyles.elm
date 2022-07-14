@@ -6,32 +6,15 @@ module ZenCss.NoHtmlStyles exposing (rule)
 
 -}
 
-import Elm.Syntax.Exposing as Exposing
 import Elm.Syntax.Expression as Expression exposing (Expression)
-import Elm.Syntax.Import exposing (Import)
-import Elm.Syntax.ModuleName exposing (ModuleName)
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node)
+import Review.ModuleNameLookupTable as ModuleNameLookupTable exposing (ModuleNameLookupTable)
 import Review.Rule as Rule exposing (Error, Rule)
 
 
 type alias Context =
-    { html : ModuleContext
-    , svg : ModuleContext
+    { lookupTable : ModuleNameLookupTable
     }
-
-
-type ModuleContext
-    = NoImport
-    | Import Aliasing ExposedStyle
-
-
-type alias Aliasing =
-    Maybe ModuleName
-
-
-type ExposedStyle
-    = ExposedStyle
-    | NonExposedStyle
 
 
 {-| Reports the use of `Html.Attributes.style` and `Svg.Attributes.style`.
@@ -81,110 +64,43 @@ elm-review --template decioferreira/elm-review-zen-css/example --rules ZenCss.No
 -}
 rule : Rule
 rule =
-    Rule.newModuleRuleSchema "ZenCss.NoHtmlStyles"
-        { html = NoImport
-        , svg = NoImport
-        }
-        |> Rule.withImportVisitor importVisitor
+    Rule.newModuleRuleSchemaUsingContextCreator "ZenCss.NoHtmlStyles" initialContext
         |> Rule.withExpressionEnterVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
 
 
-importVisitor : Node Import -> Context -> ( List (Error {}), Context )
-importVisitor node context =
-    case Node.value node |> .moduleName |> Node.value of
-        [ "Html", "Attributes" ] ->
-            let
-                aliasing : Aliasing
-                aliasing =
-                    Node.value node
-                        |> .moduleAlias
-                        |> Maybe.map Node.value
-
-                exposedStyleBool : Bool
-                exposedStyleBool =
-                    Node.value node
-                        |> .exposingList
-                        |> Maybe.map (Node.value >> Exposing.exposesFunction "style")
-                        |> Maybe.withDefault False
-
-                exposedStyle : ExposedStyle
-                exposedStyle =
-                    if exposedStyleBool then
-                        ExposedStyle
-
-                    else
-                        NonExposedStyle
-            in
-            ( [], { context | html = Import aliasing exposedStyle } )
-
-        [ "Svg", "Attributes" ] ->
-            let
-                aliasing : Aliasing
-                aliasing =
-                    Node.value node
-                        |> .moduleAlias
-                        |> Maybe.map Node.value
-
-                exposedStyleBool : Bool
-                exposedStyleBool =
-                    Node.value node
-                        |> .exposingList
-                        |> Maybe.map (Node.value >> Exposing.exposesFunction "style")
-                        |> Maybe.withDefault False
-
-                exposedStyle : ExposedStyle
-                exposedStyle =
-                    if exposedStyleBool then
-                        ExposedStyle
-
-                    else
-                        NonExposedStyle
-            in
-            ( [], { context | svg = Import aliasing exposedStyle } )
-
-        _ ->
-            ( [], context )
+initialContext : Rule.ContextCreator () Context
+initialContext =
+    Rule.initContextCreator (\lookupTable () -> { lookupTable = lookupTable })
+        |> Rule.withModuleNameLookupTable
 
 
 expressionVisitor : Node Expression -> Context -> ( List (Error {}), Context )
-expressionVisitor (Node range expression) context =
-    case ( context.html, context.svg, expression ) of
-        ( Import _ ExposedStyle, _, Expression.Application [ Node _ (Expression.FunctionOrValue [] "style"), _, _ ] ) ->
-            -- then this "style" is `Html.Attributes.style`
-            ( [ Rule.error errorHtmlStyle range ], context )
+expressionVisitor node context =
+    case Node.value node of
+        Expression.FunctionOrValue _ "style" ->
+            if ModuleNameLookupTable.moduleNameFor context.lookupTable node == Just [ "Html", "Attributes" ] then
+                ( [ Rule.error
+                        { message = "Do not use `Html.Attributes.style`"
+                        , details = [ "Use the `CSS.Attributes.class` instead." ]
+                        }
+                        (Node.range node)
+                  ]
+                , context
+                )
 
-        ( Import aliasing _, _, Expression.Application [ Node _ (Expression.FunctionOrValue moduleName "style"), _, _ ] ) ->
-            if moduleName == Maybe.withDefault [ "Html", "Attributes" ] aliasing then
-                ( [ Rule.error errorHtmlStyle range ], context )
-
-            else
-                ( [], context )
-
-        ( _, Import _ ExposedStyle, Expression.Application [ Node _ (Expression.FunctionOrValue [] "style"), _, _ ] ) ->
-            -- then this "style" is `Svg.Attributes.style`
-            ( [ Rule.error errorSvgStyle range ], context )
-
-        ( _, Import aliasing _, Expression.Application [ Node _ (Expression.FunctionOrValue moduleName "style"), _, _ ] ) ->
-            if moduleName == Maybe.withDefault [ "Svg", "Attributes" ] aliasing then
-                ( [ Rule.error errorSvgStyle range ], context )
+            else if ModuleNameLookupTable.moduleNameFor context.lookupTable node == Just [ "Svg", "Attributes" ] then
+                ( [ Rule.error
+                        { message = "Do not use `Svg.Attributes.style`"
+                        , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
+                        }
+                        (Node.range node)
+                  ]
+                , context
+                )
 
             else
                 ( [], context )
 
         _ ->
             ( [], context )
-
-
-errorHtmlStyle : { message : String, details : List String }
-errorHtmlStyle =
-    { message = "Do not use `Html.Attributes.style`"
-    , details = [ "Use the `CSS.Attributes.class` instead." ]
-    }
-
-
-errorSvgStyle : { message : String, details : List String }
-errorSvgStyle =
-    { message = "Do not use `Svg.Attributes.style`"
-    , details = [ "Use the `CSS.Attributes.svgClass` instead." ]
-    }
